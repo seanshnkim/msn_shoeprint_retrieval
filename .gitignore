@@ -2,3 +2,13 @@
 .*.swo
 *.nfs*
 *__pycache__*
+
+*.json
+
+*.jpg
+*.png
+
+*.csv
+
+*.ckpt
+*.pt

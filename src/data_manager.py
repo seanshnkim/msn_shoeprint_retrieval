@@ -17,6 +17,8 @@ import torch
 import torchvision.transforms as transforms
 import torchvision
 
+from PIL import Image
+
 _GLOBAL_SEED = 0
 logger = getLogger()
 
@@ -59,6 +61,43 @@ def init_data(
     logger.info('ImageNet unsupervised data loader created')
 
     return (data_loader, dist_sampler)
+
+
+def init_fid300_data(
+    transform,
+    batch_size,
+    pin_mem=True,
+    num_workers=8,
+    world_size=1,
+    rank=0,
+    root_path=None,
+    image_folder=None,
+    training=True,
+    copy_data=False,
+    drop_last=True,
+    subset_file=None
+):
+
+    dataset = FID300RefDataset(
+        root=root_path,
+        image_folder=image_folder,
+        transform=transform)
+    logger.info('FID-300 Reference dataset created')
+    dist_sampler = torch.utils.data.distributed.DistributedSampler(
+        dataset=dataset,
+        num_replicas=world_size,
+        rank=rank)
+    data_loader = torch.utils.data.DataLoader(
+        dataset,
+        sampler=dist_sampler,
+        batch_size=batch_size,
+        drop_last=drop_last,
+        pin_memory=pin_mem,
+        num_workers=num_workers)
+    logger.info('FID-300 Reference data loader created')
+
+    return (data_loader, dist_sampler)
+
 
 
 def make_transforms(
@@ -141,7 +180,6 @@ class MultiViewTransform(object):
 
 
 class ImageNet(torchvision.datasets.ImageFolder):
-
     def __init__(
         self,
         root,
@@ -185,6 +223,54 @@ class ImageNet(torchvision.datasets.ImageFolder):
 
         super(ImageNet, self).__init__(root=data_path, transform=transform)
         logger.info('Initialized ImageNet')
+
+
+class FID300RefDataset(torchvision.datasets.VisionDataset):
+    def __init__(self,
+                 root='FID-300',
+                 image_folder='ref',
+                 transform=None,
+        ):
+        """
+        FID-300 Reference Dataset
+
+        :param root: Root directory for FID-300 data
+        :param ref_folder: Subdirectory within the root for reference images
+        :param transform: Image transformations to apply
+        """
+        # suffix = 'ref/' if train else 'query/test/'
+        data_path = None
+        
+        data_path = os.path.join(root, image_folder)
+        if not os.path.exists(data_path):
+            raise RuntimeError(f"Dataset not found at {data_path}. Please check the path.")
+
+        if transform is None:
+            # Default Transform: you can modify this as needed
+            transform = transforms.Compose(
+                [transforms.Lambda(lambda img: img.convert('RGB')),
+                transforms.Resize((100,100)),
+                transforms.ToTensor()])
+        if data_path is None:
+            data_path = os.path.join(root, image_folder)
+        logger.info(f'data-path {data_path}')
+        
+        self.data_path = data_path
+
+        # FIXME - this code exhausts memory.
+        self.samples = sorted(os.listdir(data_path))
+        
+        super(FID300RefDataset, self).__init__(root=data_path, transform=transform)
+        logger.info('Initialized FID-300 Reference Dataset')
+    
+    def __len__(self):
+        return len(self.samples)
+    
+    def __getitem__(self, index):
+        path = os.path.join(self.data_path, self.samples[index])
+        img = Image.open(path).convert('RGB')
+        img = self.transform(img)
+        return img
 
 
 class ImageNetSubset(object):

@@ -66,3 +66,4 @@ if __name__ == '__main__':
         process_main,
         nprocs=num_gpus,
         args=(args.fname, num_gpus, args.devices))
+    # process_main(0, args.fname, num_gpus, args.devices)

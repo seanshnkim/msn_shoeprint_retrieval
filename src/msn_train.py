@@ -41,7 +41,8 @@ from src.utils import (
 )
 from src.losses import init_msn_loss
 from src.data_manager import (
-    init_data,
+    init_fid300_data,
+    # init_data,
     make_transforms
 )
 
@@ -198,9 +199,26 @@ def main(args):
         focal_views=focal_views,
         color_jitter=color_jitter)
 
+
     # -- init data-loaders/samplers
+    # (unsupervised_loader,
+    #  unsupervised_sampler) = init_data(
+    #      transform=transform,
+    #      batch_size=batch_size,
+    #      pin_mem=pin_mem,
+    #      num_workers=num_workers,
+    #      world_size=world_size,
+    #      rank=rank,
+    #      root_path=root_path,
+    #      image_folder=image_folder,
+    #      training=True,
+    #      copy_data=copy_data)
+    # ipe = len(unsupervised_loader)
+    # logger.info(f'iterations per epoch: {ipe}')
+    
+    # -- init data-loaders/samplers for FID-300 dataset
     (unsupervised_loader,
-     unsupervised_sampler) = init_data(
+     unsupervised_sampler) = init_fid300_data(
          transform=transform,
          batch_size=batch_size,
          pin_mem=pin_mem,
@@ -315,7 +333,8 @@ def main(args):
         time_meter = AverageMeter()
         data_meter = AverageMeter()
 
-        for itr, (udata, _) in enumerate(unsupervised_loader):
+        # for itr, (udata, _) in enumerate(unsupervised_loader):
+        for itr, udata in enumerate(unsupervised_loader):
 
             def load_imgs():
                 # -- unsupervised imgs

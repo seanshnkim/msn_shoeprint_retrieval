@@ -13,14 +13,14 @@ data:
   color_jitter_strength: 0.5
   pin_mem: true
   num_workers: 10
-  image_folder: imagenet_full_size/061417/
+  image_folder: ref
   label_smoothing: 0.0
   patch_drop: 0.15
   rand_size: 224
   focal_size: 96
   rand_views: 1
   focal_views: 10
-  root_path: datasets01/
+  root_path: FID-300
 logging:
   folder: checkpoint/msn_os_logs/
   write_tag: msn-experiment-1
