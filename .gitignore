@@ -12,3 +12,6 @@
 
 *.ckpt
 *.pt
+*.tar
+
+*.npy
