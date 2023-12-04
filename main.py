@@ -12,7 +12,8 @@ import torch.multiprocessing as mp
 import pprint
 import yaml
 
-from src.msn_train import main as msn
+# from src.msn_train import main as msn
+from src.hg_msn_train import main as msn
 
 from src.utils import init_distributed
 

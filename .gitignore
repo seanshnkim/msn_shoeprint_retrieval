@@ -12,6 +12,19 @@
 
 *.ckpt
 *.pt
+
+# ImageNet Dataset
 *.tar
+*.gz
+*.mat
+*.m
+*.txt
+*.dat
+*.DS_Store
+COPYING
 
 *.npy
+
+*.JPEG
+
+*.log

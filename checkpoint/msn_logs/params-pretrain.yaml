@@ -1,0 +1,21 @@
+data:
+  image_folder: imagenet
+  num_classes: 1000
+  root_path: .
+logging:
+  folder: checkpoint/msn_logs/
+  pretrain_path: checkpoint/msn_os_logs/vitl16_600ep.pth.tar
+  write_tag: msn-lineval-experiment-1
+meta:
+  copy_data: false
+  device: cuda:0
+  load_checkpoint: true
+  master_port: 8888
+  model_name: deit_small
+  training: false
+optimization:
+  epochs: 100
+  lr: 6.4
+  normalize: true
+  num_blocks: 1
+  weight_decay: 0.0

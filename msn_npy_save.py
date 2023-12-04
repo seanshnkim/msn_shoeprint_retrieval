@@ -4,6 +4,7 @@ import yaml
 from tqdm import tqdm
 import os
 import argparse
+from time import strftime, localtime
 
 import numpy as np
 
@@ -13,7 +14,10 @@ from torch.utils.data import DataLoader
 import src.deit as deit
 from src.dataset import DefaultDataset
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+start_time_stamp = strftime("%m-%d_%H%M", localtime())
+cur_fname = os.path.basename(__file__).rstrip('.py')
+log_save_dir = os.path.join('logs', f'{cur_fname}_{start_time_stamp}.log')
+logging.basicConfig(filename=log_save_dir, level=logging.INFO)
 logger = logging.getLogger()
 
 def load_pretrained(
@@ -30,8 +34,8 @@ def load_pretrained(
             pretrained_dict[k] = v
     msg = encoder.load_state_dict(pretrained_dict, strict=False)
     logger.info(f'loaded pretrained model with msg: {msg}')
-    logger.info(f'loaded pretrained encoder from epoch: {checkpoint["epoch"]} '
-                f'path: {r_path}')
+    # logger.info(f'loaded pretrained encoder from epoch: {checkpoint["epoch"]} '
+    #             f'path: {r_path}')
 
     del checkpoint
     return encoder
@@ -40,7 +44,6 @@ def load_pretrained(
 def init_model(
     device,
     num_blocks,
-    r_enc_path,
     model_name='resnet50',
 ):
     # -- init model
@@ -51,9 +54,9 @@ def init_model(
     encoder.norm = None
 
     encoder.to(device)
-    encoder = load_pretrained(
-        r_path=r_enc_path,
-        encoder=encoder)
+    # encoder = load_pretrained(
+    #     r_path=r_enc_path,
+    #     encoder=encoder)
 
     return encoder
 
@@ -69,7 +72,8 @@ def load_from_path(
     if 'best_top1_acc' in checkpoint:
         best_acc = checkpoint['best_top1_acc']
 
-    epoch = checkpoint['epoch']
+    # epoch = checkpoint['epoch']
+    epoch = None
 
     logger.info(f'read-path: {r_path}')
     
@@ -84,17 +88,24 @@ def main(args):
     w_enc_path = args.ckpt_path
     device = args.devices
     num_blocks = 1
-
+    
     encoder = init_model(
         device=device,
         num_blocks=num_blocks,
-        r_enc_path=w_enc_path,
         model_name='deit_small'
-    )
-
-    encoder, start_epoch, best_acc = load_from_path(
-        r_path=w_enc_path,
-        encoder=encoder)
+    )    
+    # model_name = 'ViT-Large'
+    model_name = args.ckpt_path.split('.')[0]
+    is_trained = True
+    
+    if is_trained:
+        model_name += '-finetuned'
+        
+        encoder, start_epoch, best_acc = load_from_path(
+            r_path=w_enc_path,
+            encoder=encoder)
+    else:
+        model_name += '-base'
 
     # DO NOT CHANGE BATCH SIZE OF QUERY
     BATCH_SIZE_QUERY = 1
@@ -109,17 +120,11 @@ def main(args):
 
     # NUM_QUERY = 300
     # NUM_REF = 1175
-    model_name = 'msn-large'
-    is_trained = True
-    if is_trained:
-        model_name += '-finetuned'
-    else:
-        model_name += '-pretrained'
 
     save_dir = f'np_features_{model_name}'
     os.makedirs(os.path.join(save_dir, "query"), exist_ok=True)
     os.makedirs(os.path.join(save_dir, "ref"), exist_ok=True)
-        
+    
     for query_img, query_idx in tqdm(query_train_dataloader):
         query_idx = query_idx.item()
         save_fname = os.path.join(save_dir, "query", f"{query_idx:05d}.npy")
@@ -157,6 +162,8 @@ def main(args):
 
 if __name__ == "__main__":
     '''
+    args format example:
+    
     "args": [
             "--fname",
             "configs/eval/test_custom.yaml",
@@ -171,4 +178,5 @@ if __name__ == "__main__":
     parser.add_argument("--devices", type=str, help="device to use")
     parser.add_argument("--ckpt_path", type=str, help="path to checkpoint")
     args = parser.parse_args()
+    
     main(args)

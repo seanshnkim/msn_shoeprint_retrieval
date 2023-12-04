@@ -161,10 +161,11 @@ def main(args):
     start_epoch = 0
     # -- load checkpoint
     if not training or load_checkpoint:
-        encoder, linear_classifier, optimizer, scheduler, start_epoch, best_acc = load_from_path(
-            r_path=w_enc_path,
+        encoder, linear_classifier, optimizer, scheduler, best_acc = load_from_path(
+            # r_path=w_enc_path,
+            r_path=r_enc_path,
             encoder=encoder,
-            linear_classifier=linear_classifier,
+            linear_classifier=linear_classifier, 
             opt=optimizer,
             sched=scheduler,
             device_str=args['meta']['device'])
@@ -282,21 +283,21 @@ def load_pretrained(
             pretrained_dict[k] = v
     msg = encoder.load_state_dict(pretrained_dict, strict=False)
     logger.info(f'loaded pretrained model with msg: {msg}')
-    logger.info(f'loaded pretrained encoder from epoch: {checkpoint["epoch"]} '
-                f'path: {r_path}')
+    # logger.info(f'loaded pretrained encoder from epoch: {checkpoint["epoch"]} '
+    #             f'path: {r_path}')
 
-    if linear_classifier is not None:
-        pretrained_dict = {k.replace('module.', ''): v for k, v in checkpoint['classifier'].items()}
-        for k, v in linear_classifier.state_dict().items():
-            if k not in pretrained_dict:
-                logger.info(f'key "{k}" could not be found in loaded state dict')
-            elif pretrained_dict[k].shape != v.shape:
-                logger.info(f'key "{k}" is of different shape in model and loaded state dict')
-                pretrained_dict[k] = v
-        msg = linear_classifier.load_state_dict(pretrained_dict, strict=False)
-        logger.info(f'loaded pretrained model with msg: {msg}')
-        logger.info(f'loaded pretrained encoder from epoch: {checkpoint["epoch"]} '
-                    f'path: {r_path}')
+    # if linear_classifier is not None:
+    #     pretrained_dict = {k.replace('module.', ''): v for k, v in checkpoint['classifier'].items()}
+    #     for k, v in linear_classifier.state_dict().items():
+    #         if k not in pretrained_dict:
+    #             logger.info(f'key "{k}" could not be found in loaded state dict')
+    #         elif pretrained_dict[k].shape != v.shape:
+    #             logger.info(f'key "{k}" is of different shape in model and loaded state dict')
+    #             pretrained_dict[k] = v
+    #     msg = linear_classifier.load_state_dict(pretrained_dict, strict=False)
+    #     logger.info(f'loaded pretrained model with msg: {msg}')
+    #     logger.info(f'loaded pretrained encoder from epoch: {checkpoint["epoch"]} '
+    #                 f'path: {r_path}')
 
     del checkpoint
     return encoder, linear_classifier
@@ -314,17 +315,17 @@ def load_from_path(
     checkpoint = torch.load(r_path, map_location=device_str)
 
     best_acc = None
-    if 'best_top1_acc' in checkpoint:
-        best_acc = checkpoint['best_top1_acc']
+    # if 'best_top1_acc' in checkpoint:
+    #     best_acc = checkpoint['best_top1_acc']
 
-    epoch = checkpoint['epoch']
-    if opt is not None:
-        opt.load_state_dict(checkpoint['opt'])
-        sched.load_state_dict(checkpoint['sched'])
-        logger.info(f'loaded optimizers from epoch {epoch}')
+    # epoch = checkpoint['epoch']
+    # if opt is not None:
+    #     opt.load_state_dict(checkpoint['opt'])
+    #     sched.load_state_dict(checkpoint['sched'])
+        # logger.info(f'loaded optimizers from epoch {epoch}')
     logger.info(f'read-path: {r_path}')
     del checkpoint
-    return encoder, opt, sched, epoch, best_acc
+    return encoder, linear_classifier, opt, sched, best_acc
 
 
 def init_model(
