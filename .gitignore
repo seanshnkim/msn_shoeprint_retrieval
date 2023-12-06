@@ -12,6 +12,7 @@
 
 *.ckpt
 *.pt
+*.bin
 
 # ImageNet Dataset
 *.tar

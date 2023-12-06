@@ -1,0 +1,7 @@
+# model_name: 'google/vit-base-patch16-224'
+# model_name: 'facebook/vit-msn-base'
+model_name: 'facebook/vit-mae-base'
+root_path: '.'
+image_folder: 'imagenet'
+batch_size: 32
+num_workers: 4
