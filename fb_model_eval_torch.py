@@ -40,7 +40,7 @@ parser.add_argument(
 parser.add_argument(
     '--deit_type', type=str,
     help='default deit model type. If using MSN-large, set to "deit_large"',
-    default='deit_base')
+    default='deit_small')
 
 args = parser.parse_args()
 
@@ -57,17 +57,17 @@ emb_dim *= num_blocks
 encoder.fc = None
 encoder.norm = None
 
-# checkpoint = torch.load(pretrained_model, map_location='cpu')
-checkpoint = ViTMSNModel.from_pretrained(pretrained_model)
-# pretrained_dict = {k.replace('module.', ''): v for k, v in checkpoint['target_encoder'].items()}
-# for k, v in encoder.state_dict().items():
-#     if k not in pretrained_dict:
-#         print(f'key "{k}" could not be found in loaded state dict')
-#     elif pretrained_dict[k].shape != v.shape:
-#         print(f'key "{k}" is of different shape in model and loaded state dict')
-#         pretrained_dict[k] = v
+checkpoint = torch.load(pretrained_model, map_location='cpu')
+# checkpoint = ViTMSNModel.from_pretrained(pretrained_model)
+pretrained_dict = {k.replace('module.', ''): v for k, v in checkpoint['target_encoder'].items()}
+for k, v in encoder.state_dict().items():
+    if k not in pretrained_dict:
+        print(f'key "{k}" could not be found in loaded state dict')
+    elif pretrained_dict[k].shape != v.shape:
+        print(f'key "{k}" is of different shape in model and loaded state dict')
+        pretrained_dict[k] = v
 
-# encoder.load_state_dict(pretrained_dict, strict=False)
+encoder.load_state_dict(pretrained_dict, strict=False)
 
 val_transform = transforms.Compose([
         transforms.Resize(size=256),
@@ -117,6 +117,7 @@ logger.info(f"Number of images: {len(val_dataset)}")
 
 start_time = time()
 total, correct = 0, 0
+encoder.eval()
 for data in tqdm(val_data_loader):
     with torch.cuda.amp.autocast(enabled=True):
         inputs, labels = data[0].to(device), data[1].to(device)

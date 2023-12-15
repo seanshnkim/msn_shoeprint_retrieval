@@ -106,6 +106,9 @@ logger.info(f"Number of workers: {NUM_WORKERS}")
 logger.info(f"Number of images: {len(val_dataset)}")
 
 start_time = time()
+
+model.eval()
+
 total, correct = 0, 0
 for data in tqdm(val_data_loader):
     with torch.cuda.amp.autocast(enabled=True):

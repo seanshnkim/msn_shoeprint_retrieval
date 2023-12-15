@@ -1,0 +1,5 @@
+model_name: 'checkpoint/msn_os_logs/msn-experiment-1-ep175.pth.tar'
+root_path: '~/Documents'
+image_folder: 'imagenet'
+batch_size: 64
+num_workers: 4

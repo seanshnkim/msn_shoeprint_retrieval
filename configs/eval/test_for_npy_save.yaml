@@ -1,0 +1,7 @@
+image_labels: "label_table.csv"
+
+data_path:
+   query_train: "query/train"
+   ref_train: "reference_v1"
+   query_test: "query/test"
+   ref_test: "ref"

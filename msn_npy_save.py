@@ -68,23 +68,17 @@ def load_from_path(
     encoder = load_pretrained(r_path, encoder)
     checkpoint = torch.load(r_path, map_location=None)
 
-    best_acc = None
-    if 'best_top1_acc' in checkpoint:
-        best_acc = checkpoint['best_top1_acc']
-
-    # epoch = checkpoint['epoch']
-    epoch = None
-
     logger.info(f'read-path: {r_path}')
     
     del checkpoint
-    return encoder, epoch, best_acc
+    return encoder
 
 
 def main(args):
     with open(args.fname, 'r') as file:
         cfg = yaml.safe_load(file)
 
+    # ckpt_path = "checkpoint/msn_os_logs/msn-experiment-1-ep175.pth.tar"
     w_enc_path = args.ckpt_path
     device = args.devices
     num_blocks = 1
@@ -101,11 +95,9 @@ def main(args):
     if is_trained:
         model_name += '-finetuned'
         
-        encoder, start_epoch, best_acc = load_from_path(
+        encoder = load_from_path(
             r_path=w_enc_path,
             encoder=encoder)
-    else:
-        model_name += '-base'
 
     # DO NOT CHANGE BATCH SIZE OF QUERY
     BATCH_SIZE_QUERY = 1
@@ -124,6 +116,7 @@ def main(args):
     save_dir = f'np_features_{model_name}'
     os.makedirs(os.path.join(save_dir, "query"), exist_ok=True)
     os.makedirs(os.path.join(save_dir, "ref"), exist_ok=True)
+    
     
     for query_img, query_idx in tqdm(query_train_dataloader):
         query_idx = query_idx.item()
